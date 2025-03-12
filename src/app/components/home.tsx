@@ -4,7 +4,9 @@ import { Routes, Route, HashRouter as Router } from "react-router-dom";
 import styles from "./home.module.scss";
 import { SideBar } from "./sidebar";
 import Chat from "./chat";
-import MaskPage from "./mask";
+import { MaskPage } from "./mask-page";
+import { useEffect } from "react";
+import { useMaskStore } from "../store/mask";
 
 export default function Home() {
   return (

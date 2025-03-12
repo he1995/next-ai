@@ -1,7 +1,9 @@
 import styles from "./home.module.scss";
-
 import ChatGptIcon from "../icons/chatgpt.svg";
 import { useNavigate } from "react-router-dom";
+import Locale from "../locales";
+import { Path } from "../constant";
+import { ChatList } from "./chat-list";
 
 export function SideBar() {
 
@@ -13,7 +15,7 @@ export function SideBar() {
     >
       <div className={styles["sidebar-header"]} data-tauri-drag-region>
         <div className={styles["sidebar-title"]} data-tauri-drag-region>
-          NextAI
+          NextChat
         </div>
         <div className={styles["sidebar-sub-title"]}>
           Build your own AI assistant.
@@ -26,19 +28,14 @@ export function SideBar() {
       <button
         className={styles["new-chat-button"]}
         onClick={() => {
-          navigate("/")
+          navigate(Path.Home)
         }}
-      >新建聊天</button>
+      >{Locale.Chat.NewChat}</button>
 
       <div
         className={styles["sidebar-body"]}
       >
-        <h1 onClick={() => navigate("/chat")}>小红书写手</h1>
-        <h1>心灵导师</h1>
-        <h1>小红书写手</h1>
-        <h1>心灵导师</h1>
-        <h1>小红书写手</h1>
-        <h1>心灵导师</h1>
+        <ChatList />
       </div>
     </div>
   );
