@@ -25,6 +25,26 @@ export interface ChatSession {
     mask: Mask;
 }
 
+/**
+ * {
+        "model": "deepseek-chat",
+        "messages": [
+          {"role": "system", "content": "You are a helpful assistant."},
+          {"role": "user", "content": "Hello!"}
+        ],
+        "stream": false
+      }
+ */
+export interface Message {
+    role: String,
+    content: String
+}
+export interface chatRequest {
+    model: String,
+    messages: Message[],
+    stream: boolean
+}
+
 export const DEFAULT_TOPIC = Locale.Store.DefaultTopic;
 export const BOT_HELLO: ChatMessage = createMessage({
     role: "assistant",
@@ -58,10 +78,22 @@ export interface ChatState {
     selectSession: (index: number) => void;
     newSession: (mask?: Mask) => void;
     currentSession: () => ChatSession;
+    chat(prompt: string): void;
 }
 
 function getServerURL() {
     return "http://localhost:8080"
+}
+
+function uploadMessage(session: ChatSession, message: ChatMessage) {
+    return fetch(getServerURL() + "/session/message/add?sessionId=" + session.id,
+        {
+            method: "post",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(message)
+        })
 }
 
 
@@ -159,7 +191,39 @@ export const useChatStore = create<ChatState>()(
             const session = sessions[index];
 
             return session;
-        }
+        },
+
+        chat(prompt) {
+            const request: chatRequest = { 
+                model: "deepseek-chat", 
+                messages: [ 
+                    { role: "system", content: "you are a helpful assistant"}, 
+                    { role: "user", content: prompt}
+                ],
+                stream: false,
+            }
+
+            const chatMessage: ChatMessage = {id: "001", content: prompt, role: "user", date: new Date().toDateString()};
+            uploadMessage(this.currentSession(), chatMessage);
+
+            fetch(process.env.NEXT_PUBLIC_OPEN_URL + "/chat/completions",
+                {
+                    method: "post",
+                    headers: { "Content-Type": "application/json", "Authorization" : "Bearer " + process.env.NEXT_PUBLIC_API_KEY },
+                    body: JSON.stringify(request)
+                }).then((res) => {
+                    return res.json();
+                }).then((data) => {
+                    console.log("=========================================================");
+                    console.log(data);
+                    const response = data.choices[0].message;
+                    const resMessage: ChatMessage = {id: Math.random().toString(), content: response.content, role: "assistant", date: new Date().toDateString()};
+                    uploadMessage(this.currentSession(), resMessage);
+
+                }).catch(e => {
+                    console.error(e);
+                })
+        },
 
     }),
         { name: "chat-session" }
